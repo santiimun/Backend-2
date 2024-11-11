@@ -1,1 +1,13 @@
-[]
+[
+	{
+		"id": 1,
+		"title": "NIKE AIR FORCE",
+		"status": true,
+		"stock": 10,
+		"descripcion": "zapas comodas",
+		"category": "calzado",
+		"code": "12310",
+		"price": 160,
+		"thumbnail": "file_9921_11112024_180230.webp"
+	}
+]
