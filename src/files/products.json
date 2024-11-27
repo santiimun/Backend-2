@@ -25,11 +25,11 @@
 		"id": 3,
 		"title": "Vans Knu",
 		"status": false,
-		"stock": 10,
-		"description": "Zapatillas Vans de ultima generacion",
+		"stock": 120,
+		"description": "Zapatillas de ultima generacion",
 		"category": "Calzado",
-		"code": "123",
-		"price": 100,
+		"code": "189",
+		"price": 147,
 		"thumbnail": null
 	}
 ]

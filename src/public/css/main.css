@@ -16,3 +16,21 @@ h1 {
 .error404 img {
     width: 400px;
 }
+
+.msj-error{
+    color: red;
+    font-size: 30px;
+}
+
+.form-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px ;
+}
+.form-socket{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 250px;
+}

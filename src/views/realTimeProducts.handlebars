@@ -8,9 +8,9 @@
             <ul id="products-list"></ul>
         </div>
     </section>
-    <section>
-        <h3>Form </h3>
-        <form id="products-form">
+    <section class="form-container">
+        <form class="form-socket" id="products-form">
+            <h3>Form </h3>
             <input type="text" name="title" placeholder="Ingresa el nombre">
             <div>Status <input type="checkbox" name="status"></div>
             <input type="number" name="stock" placeholder="Ingresa el stock">
@@ -20,15 +20,13 @@
             <input type="price" name="price" placeholder="Ingresa el precio">
             <input type="submit" value="Keep">
         </form>
-    </section>
-    <div>
-        <h3>Delete Product</h3>
         <div>
+            <h3>Delete Product</h3>
             <input type="number" id="delete-product-id">
             <button id="btn-delete-product">Delete</button>
         </div>
-    </div>
-    <p id="error-message" style="color: brown; font-size : 30px;"></p>
+    </section>
+    <p class="msj-error" id="error-message"></p>
 </main>
 
 <script src="/socket.io/socket.io.js"></script>
