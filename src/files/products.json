@@ -4,10 +4,32 @@
 		"title": "NIKE AIR FORCE",
 		"status": true,
 		"stock": 10,
-		"descripcion": "zapas comodas",
+		"description": "zapas comodas",
 		"category": "calzado",
 		"code": "12310",
 		"price": 160,
 		"thumbnail": "file_9921_11112024_180230.webp"
+	},
+	{
+		"id": 2,
+		"title": "Campus",
+		"status": true,
+		"stock": 12,
+		"description": "Zapatillas Adidas super comodas",
+		"category": "Calzado",
+		"code": "147",
+		"price": 120,
+		"thumbnail": null
+	},
+	{
+		"id": 3,
+		"title": "Vans Knu",
+		"status": false,
+		"stock": 10,
+		"description": "Zapatillas Vans de ultima generacion",
+		"category": "Calzado",
+		"code": "123",
+		"price": 100,
+		"thumbnail": null
 	}
 ]

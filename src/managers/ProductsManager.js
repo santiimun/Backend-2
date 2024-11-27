@@ -49,14 +49,10 @@ export default class ProductsManager {
     // Incluir un producto
     async insertOne(data, file) {
         try {
-            const { title, status, stock, descripcion, category, code, price } = data;
+            const { title, status, stock, description, category, code, price, thumbnail } = data;
 
-            if (!title || status === null || status === undefined || !stock || !descripcion || !category || !code || !price ) {
+            if (!title || status === null || status === undefined || !stock || !description || !category || !code || !price ) {
                 throw new ErrorManager("Faltan datos obligatorios", 400);
-            }
-
-            if (!file?.filename) {
-                throw new ErrorManager("Falta el archivo de la imagen", 400);
             }
 
             const product = {
@@ -64,11 +60,11 @@ export default class ProductsManager {
                 title,
                 status: convertToBoolean(status),
                 stock: Number(stock),
-                descripcion,
+                description,
                 category,
                 code,
                 price: Number(price),
-                thumbnail: file?.filename,
+                thumbnail: file?.filename || null,
             };
 
             this.#prodcuts.push(product);
@@ -84,7 +80,7 @@ export default class ProductsManager {
     // Actualizar un producto
     async updateOneById(id, data, file) {
         try {
-            const { title, status, stock, descripcion, category, code, price } = data;
+            const { title, status, stock, description, category, code, price } = data;
             const productFound = await this.#findOneById(id);
             const newThumbnail = file?.filename;
 
@@ -93,7 +89,7 @@ export default class ProductsManager {
                 title: title || productFound.title,
                 status: status ? convertToBoolean(status) : productFound.status,  
                 stock: stock ? Number(stock) : productFound.stock,  
-                descripcion: descripcion || productFound.descripcion,  
+                description: description || productFound.description,  
                 category: category || productFound.category,  
                 code: code || productFound.code, 
                 price: price ? Number(price) : productFound.price, 
