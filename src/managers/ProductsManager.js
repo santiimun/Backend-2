@@ -1,131 +1,104 @@
-import paths from "../utils/paths.js";
-import { readJsonFile, writeJsonFile, deleteFile } from "../utils/fileHandler.js";
-import { generateId } from "../utils/collectionHandler.js";
-import { convertToBoolean } from "../utils/converter.js";
 import ErrorManager from "./ErrorManager.js";
+import ProductModel from "../models/products.model.js";
+import { validateId } from "../config/mongoose.config.js";
 
-export default class ProductsManager {
-    #jsonFilename;
-    #prodcuts;
+
+
+export default class ProductManager {
+    #productsModel;
 
     constructor() {
-        this.#jsonFilename = "products.json";
+        this.#productsModel = ProductModel;
     }
     
-    // Obtiene todos los prodcutos
-    async getAll() {
-        try {
-            this.#prodcuts = await readJsonFile(paths.files, this.#jsonFilename);
-            return this.#prodcuts;
-        } catch (error) {
-            throw new ErrorManager(error.message, error.code);
-        }
-    }
-
-
     // Metodo para buscar un producto por su id
     async #findOneById(id) {
-        this.#prodcuts = await this.getAll();
-        const productFound = this.#prodcuts.find((item) => item.id === Number(id));
+        if (!validateId(id)) {
+            throw new ErrorManager ("ID no valido", 400);
+        }
+        
+        const product = await this.#productsModel.findById(id);
 
-        if (!productFound) {
+        if (!product) {
             throw new ErrorManager("ID no encontrado", 404);
         }
-
-        return productFound;
+        
+        return product;
     }
-
-
+    
     // Obtener un producto por su ID
     async getOneById(id) {
         try {
-            const productFound = await this.#findOneById(id);
-            return productFound;
+            const product = await this.#findOneById(id);
+            return product;
         } catch (error) {
-            throw new ErrorManager(error.message, error.code);
+            throw ErrorManager.handleError(error);
         }
     }
+
+    
+    // Obtiene todos los prodcutos
+    async getAll(params) {
+        try {
+            const $and = [];
+            if (params?.category) $and.push({category: {$regex: params.category, $options: "i"}});
+            if (params?.availability !== undefined) $and.push({ availability: params.availability });
+            if (params?.title) $and.push({title: {$regex: params.title, $options: "i"}});
+            const filters = $and.length > 0 ? {$and} : {};
+
+
+            const sort = {
+                asc:{ price: 1 },
+                desc:{ price : -1,}
+            }
+            const paginationOptions = {
+                limit : params?.limit || 10,
+                page: params?.page ||1,
+                sort: sort[params?.sort] ?? {},
+                lean: true,
+            };
+            
+            return await this.#productsModel.paginate(filters, paginationOptions);
+        } catch (error) {
+            throw  ErrorManager.handleError(error);
+        }
+    }
+
 
     // Incluir un producto
-    async insertOne(data, file) {
+    async insertOne(data) {
         try {
-            const { title, status, stock, description, category, code, price, thumbnail } = data;
-
-            if (!title || status === null || status === undefined || !stock || !description || !category || !code || !price ) {
-                throw new ErrorManager("Faltan datos obligatorios", 400);
-            }
-
-            const product = {
-                id: generateId(await this.getAll()),
-                title,
-                status: convertToBoolean(status),
-                stock: Number(stock),
-                description,
-                category,
-                code,
-                price: Number(price),
-                thumbnail: file?.filename || null,
-            };
-
-            this.#prodcuts.push(product);
-            await writeJsonFile(paths.files, this.#jsonFilename, this.#prodcuts);
-
+            const product = await this.#productsModel.create(data);
             return product;
         } catch (error) {
-            if (file?.filename) await deleteFile(paths.images, file.filename); 
-            throw new ErrorManager(error.message, error.code);
+            throw ErrorManager.handleError(error);
         }
     }
 
+    
     // Actualizar un producto
-    async updateOneById(id, data, file) {
+    async updateOneById(id, data) {
         try {
-            const { title, status, stock, description, category, code, price } = data;
-            const productFound = await this.#findOneById(id);
-            const newThumbnail = file?.filename;
+            const product = await this.#findOneById(id);
 
-            const product = {
-                id: productFound.id,
-                title: title || productFound.title,
-                status: status ? convertToBoolean(status) : productFound.status,  
-                stock: stock ? Number(stock) : productFound.stock,  
-                description: description || productFound.description,  
-                category: category || productFound.category,  
-                code: code || productFound.code, 
-                price: price ? Number(price) : productFound.price, 
-                thumbnail: newThumbnail || productFound.thumbnail,  
-            };
-
-            const index = this.#prodcuts.findIndex((item) => item.id === Number(id));
-            this.#prodcuts[index] = product;
-            await writeJsonFile(paths.files, this.#jsonFilename, this.#prodcuts);
-
-            if (file?.filename && newThumbnail !== productFound.thumbnail) {
-                await deleteFile(paths.images, productFound.thumbnail);
-            }
+            const newValues = { ...product, ...data};
+            product.set(newValues);
+            product.save();
 
             return product;
         } catch (error) {
-            if (file?.filename) await deleteFile(paths.images, file.filename); 
-            throw new ErrorManager(error.message, error.code);
+            throw ErrorManager.handleError(error);
         }
     }
 
+    
     // Eliminar un producto 
     async deleteOneById (id) {
         try {
-            const productFound = await this.#findOneById(id);
-
-            
-            if (productFound.thumbnail) {
-                await deleteFile(paths.images, productFound.thumbnail);
-            }
-
-            const index = this.#prodcuts.findIndex((item) => item.id === Number(id));
-            this.#prodcuts.splice(index, 1);
-            await writeJsonFile(paths.files, this.#jsonFilename, this.#prodcuts);
+            const product = await this.#findOneById(id);
+            await product.deleteOne();
         } catch (error) {
-            throw new ErrorManager(error.message, error.code);
+            throw ErrorManager.handleError(error);
         }
     }
 }

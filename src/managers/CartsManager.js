@@ -1,90 +1,150 @@
-import paths from "../utils/paths.js";
-import { readJsonFile, writeJsonFile } from "../utils/fileHandler.js";
-import { generateId } from "../utils/collectionHandler.js";
+
+import { validateId } from "../config/mongoose.config.js";
+import CartModel from "../models/carts.model.js";
 import ErrorManager from "./ErrorManager.js";
 
 export default class CartsManager {
-    #jsonFilename;
-    #carts;
+    #cartModel;
 
     constructor() {
-        this.#jsonFilename = "carts.json";
+        this.#cartModel = CartModel;
     }
     
-    // Obtener la lista de carritos
-    async getAll() {
+    //Obtener la lista de carritos
+    async getAll(params) {
         try {
-            this.#carts = await readJsonFile(paths.files, this.#jsonFilename);
-            return this.#carts;
+            const paginationOptions = {
+                limit : params?.limit || 10,
+                page: params?.page ||1,
+                populate: "products.product",
+                lean: true,
+            };
+            return await this.#cartModel.paginate({}, paginationOptions);
         } catch (error) {
-            throw new ErrorManager(error.message, error.code);
+            throw new ErrorManager.handleError(error);
         }
     }
 
-    
     // Metodo para buscar un carrito por su ID
     async #findOneById(id) {
-        this.#carts = await this.getAll();
-        const cartFound = this.#carts.find((item) => item.id === Number(id));
+        if (!validateId(id)) {
+            throw new ErrorManager("ID no valido", 400);
+        }
+        
+        const cart = await this.#cartModel.findById(id).populate("products.product")
+        
 
-        if (!cartFound) {
+        if (!cart) {
             throw new ErrorManager("ID no encontrado", 404);
         }
 
-        return cartFound;
+        return cart;
     }
 
 
     // Obtiene un carrito 
     async getOneById(id) {
         try {
-            const cartFound = await this.#findOneById(id);
-            return cartFound;
+            return await this.#findOneById(id);
         } catch (error) {
-            throw new ErrorManager(error.message, error.code);
+            throw new ErrorManager.handleError(error);
         }
     }
 
     // Incluir un carrito
     async insertOne(data) {
         try {
-            const products = data?.products?.map((item) => {
-                return { product: Number(item.product), quantity: 1 };
-            });
-
-            const cart = {
-                id: generateId(await this.getAll()),
-                products: products ?? [],
-            };
-
-            this.#carts.push(cart);
-            await writeJsonFile(paths.files, this.#jsonFilename, this.#carts);
-
+            const cart = await this.#cartModel.create(data);
             return cart;
-        } catch (error) {
-            throw new ErrorManager(error.message, error.code);
+        }catch(error){
+            throw ErrorManager.handleError(error);
         }
     }
 
     // Agrega un producto al carrito
-    addOneProduct = async (id, productId) => {
-        try {
-            const cartFound = await this.#findOneById(id);
-            const productIndex = cartFound.products.findIndex((item) => item.products === Number(productId));
+    
+async addOneProduct(id, productId) {
+    try {
+        const cart = await this.#findOneById(id); 
+        const productIndex = cart.products.findIndex((item) => item.product.equals(productId));
 
-            if (productIndex >= 0) {
-                cartFound.products[productIndex].quantity++;
-            } else {
-                cartFound.products.push({ products: Number(productId), quantity: 1 });
-            }
-
-            const index = this.#carts.findIndex((item) => item.id === Number(id));
-            this.#carts[index] = cartFound;
-            await writeJsonFile(paths.files, this.#jsonFilename, this.#carts);
-
-            return cartFound;
-        } catch (error) {
-            throw new ErrorManager(error.message, error.code);
+        if (productIndex >= 0) {
+            cart.products[productIndex].quantity++;
+        } else {
+            cart.products.push({ product: productId, quantity: 1 });
         }
-    };
+        await cart.save();
+
+        return cart;
+    } catch (error) {
+        throw new ErrorManager(error.message, error.code);
+    }
+};
+
+//Eliminar Carrito
+async deleteOneById (id) {
+        try {
+            const cart = await this.#findOneById(id);
+            await cart.deleteOne();
+        } catch (error) {
+            throw ErrorManager.handleError(error);
+        }
+    }
+
+
+
+// Eliminar un producto del carrito
+    async removeProduct(cartId, productId) {
+        const cart = await this.#findOneById(cartId); 
+
+        const productIndex = cart.products.findIndex((item) => item.product._id.toString() === productId.toString());
+        if (productIndex >= 0) {
+            if (cart.products[productIndex].quantity > 1) {
+                cart.products[productIndex].quantity--;
+            } else {
+                cart.products.splice(productIndex, 1);
+            }
+    
+            await cart.save();
+    
+            return cart; 
+        } else {
+            throw new ErrorManager("Producto no encontrado en el carrito", 404);
+        }
+    }
+    
+    
+
+    // Actualizar el carrito con un arreglo de productos
+    async updateCart(cartId, products) {
+        const cart = await this.#findOneById(cartId);
+        cart.products = products;
+        await cart.save();
+        return cart;
+    }
+
+
+
+
+    // Actualizar la cantidad de un producto en el carrito
+    async updateProductQuantity(cartId, productId, quantity) {
+        const cart = await this.#findOneById(cartId);
+        const productIndex = cart.products.findIndex((item) => item.product._id.toString() === productId.toString());
+
+        if (productIndex >= 0) {
+            cart.products[productIndex].quantity = quantity;
+            await cart.save();
+            return cart;
+        } else {
+            throw new ErrorManager("Producto no encontrado en el carrito", 404);
+        }
+    }
+    
+    
+    async clearCart(cartId) {
+        const cart = await this.#findOneById(cartId);
+        cart.products = []; // Vaciar el arreglo de productos
+        await cart.save();
+        return cart;
+    }
 }

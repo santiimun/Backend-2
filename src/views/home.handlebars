@@ -1,15 +1,45 @@
-<header>
-    <h1>Home - Products</h1>
-</header>
-<main>
-    <section>
-        <h3>List Products</h3>
-        <div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Productos</title>
+</head>
+<body>
+    <header>
+        <h1>Lista de Productos</h1>
+    </header>
+    <main>
+        <section>
+            <h3>Filtros de Búsqueda</h3>
+            <div>
+                <label for="price">Ordenar por Precio:</label>
+                <button id="ascPrice">Ascendente</button>
+                <button id="descPrice">Descendente</button>
+                <button id="resetSort">X</button>
+                <div>
+                    <input id="filter-category" type="text" placeholder="Filtrar por categoria">
+                    <button id="filter-button">Filtrar</button>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h3>Productos</h3>
             <ul id="products-list"></ul>
-        </div>
-        <button id="btn-refresh-products">Update list</button>
-    </section>
-</main>
+            <div id="pagination">
+                <button id="prev-page">Página Anterior</button>
+                <span id="page-info"></span>
+                <button id="next-page">Siguiente Página</button>
+            </div>
+        </section>
 
+        <section>
+            <button id="view-cart">Ver Carrito</button>
+            <button id="clear-cart">Vaciar Carrito</button>
+        </section>
+    </main>
 
-<script src="/api/public/js/products.js"></script>
+    <script src="/api/public/js/products.js"></script>
+</body>
+</html>
