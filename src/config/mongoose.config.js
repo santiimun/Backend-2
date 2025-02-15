@@ -1,10 +1,10 @@
 import { connect, Types }  from "mongoose";
+import "dotenv/config"
 
 export const connectDB = async ()=>{
-    const URL = "mongodb+srv://Santiago:12345@cluster0.i7iqg.mongodb.net/proyecto"; 
 
     try{
-        await connect(URL);
+        await connect(process.env.MONGO_DB_URL);
         console.log("conectado a MongoDB");
         
     } catch (error){
