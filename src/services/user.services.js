@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
 import "dotenv/config";
-import { userDao } from "../daos/user.dao.js";
+import { userDao } from "../daos/mongodb/user.dao.js";
 import Services from "./service.manager.js";
 import { createHash, isValidPassword } from "../utils/brcypt.js";
 import { cartService } from "./cart.services.js";
+import  { userRepository } from "../repository/user.repository.js";
 
 class UserService extends Services {
     constructor() {
@@ -14,7 +15,7 @@ class UserService extends Services {
             const { email, password} = user;
             const existUser = await this.getUserByEmail(email);
             if (existUser) throw new Error("User already exists");
-            const cartUser = await cartService.createCart();
+            const cartUser = await cartService.create();
             const newUser = await this.dao.register({
                 ...user,
                 password: createHash(password),
@@ -59,6 +60,11 @@ class UserService extends Services {
     
         return jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "20m" });
     };
+
+
+    getUser = async (req, res) => {
+        return await userRepository.privateData(req, res);
+    }
 }
 
 export const userService = new UserService();

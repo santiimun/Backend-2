@@ -1,14 +1,22 @@
 import MongoDao from "./mongo.dao.js";
-import CartModel from "../models/carts.model.js";
+import CartModel from "./models/carts.model.js";
+import mongoose from "mongoose";
 
 export default class CartDao extends MongoDao {
     constructor() {
         super(CartModel);
     }
-    async getAllC() {
-        try {
-            return await this.model.find();
-        } catch (e) {
+    async findOneById(id) {
+        try{
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                throw new Error("Invalid ID");
+            }
+            const cart = await this.model.findById(id);
+            if (!cart) {
+                throw new Error("Cart not found");
+            }
+            return await cart.populate("products.product");
+        }catch(error){
             throw new Error(error);
         }
     }
@@ -31,45 +39,12 @@ export default class CartDao extends MongoDao {
         }
     }
 
-    async addOneProduct(cartId, prodId) {
-        try {
-            const existProdInCart = await this.existProdInCart(cartId, prodId);
-            if (existProdInCart) {
-                return await this.model.findOneAndUpdate(
-                    { _id: cartId, 'products.product': prodId },
-                    { $set: { 'products.$.quantity': existProdInCart.products[0].quantity + 1 } },
-                    { new: true }
-                );
-            } else {
-                return await this.model.findByIdAndUpdate(
-                    cartId,
-                    { $push: { products: { product: prodId } } },
-                    { new: true }
-                )
-            }
-        } catch (error) {
-            throw new Error(error);
-        }
-    }
-
     async existProduct(cartId, prodId) {
         try {
             return await this.model.findOne({
                 _id: cartId,
                 products: { $elemMatch: { product: prodId } }
             })
-        } catch (error) {
-            throw new Error(error);
-        }
-    }
-
-    async removeProduct(cartId, prodId) {
-        try {
-            return await this.model.findOneAndUpdate(
-                { _id: cartId },
-                { $pull: { products: { product: prodId } } },
-                { new: true }
-            );
         } catch (error) {
             throw new Error(error);
         }

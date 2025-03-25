@@ -26,13 +26,9 @@ class UserController extends Controllers {
         }
     };
 
-    privateData = (req, res, next) => {
+    privateData = async (req, res, next) => {
         try {
-            if (!req.user)
-                throw new Error("No se puede acceder a los datos del usuario");
-            res.json({
-                user: req.user,
-            });
+            await this.service.getUser(req, res);
         } catch (error) {
             next(error);
         }

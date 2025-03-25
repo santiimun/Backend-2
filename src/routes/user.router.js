@@ -8,6 +8,6 @@ router.post("/register", userController.register);
 
 router.post("/login", userController.login);
 
-router.get("/sessions/current", passportCall('current'), userController.privateData);
+router.get("/current", passportCall('current'), userController.privateData);
 
 export default router;

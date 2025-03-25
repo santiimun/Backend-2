@@ -1,21 +1,12 @@
 import express from "express";
-import { config as configHandlebars } from "./config/handlebars.config.js";
-import { config as configWebsocket } from "./config/websocket.config.js";
 import { connectDB } from "./config/mongoose.config.js";
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import MongoStore from "connect-mongo"
 import passport from "passport";
-
 import "dotenv/config";
 import "./passport/jwt.js"
-
-// Importación de enrutadores
-//import routerCarts from "./routes/carts.router.js";
-//import routerProducts from "./routes/products.router.js";
-//import routerViewHome from "./routes/home.view.router.js";
-import routerUsers from "./routes/user.router.js"
-
+import Routers from "./routes/index.js"
 
 const app = express();
 const PORT = 8080;
@@ -47,12 +38,10 @@ app.use(passport.session());
 
 
 
-configHandlebars(app);
-
 connectDB();
 
 
-app.use("/api", routerUsers);
+app.use("/api", Routers);
 
 
 
@@ -65,5 +54,3 @@ const httpServer = app.listen(PORT, () => {
     console.log(`Ejecutándose en http://localhost:${PORT}`);
 });
 
-
-configWebsocket(httpServer);
