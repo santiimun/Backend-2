@@ -38,3 +38,17 @@ passport.deserializeUser(async (id, done) => {
         done(error);
     }
 });
+
+
+export const authenticateJWT = (req, res, next) => {
+    passport.authenticate('current', { session: false }, (err, user, info) => {
+        if (err) {
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        if (!user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        req.user = user;
+        next();
+    });
+};

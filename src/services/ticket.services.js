@@ -2,9 +2,9 @@ import TicketModel from "../daos/mongodb/models/ticket.model.js";
 import Services from "./service.manager.js";
 
 class TicketServices extends Services {
-    async createTicket(userId, totalAmount) {
+    async createTicket(userEmail, totalAmount) {
         const ticket = new TicketModel({
-            purchaser: userId,
+            purchaser: userEmail,
             amount: totalAmount
         });
 

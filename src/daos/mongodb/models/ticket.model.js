@@ -24,6 +24,7 @@ const ticketSchema = new Schema({
     },
     {
         timestamps: false,
+        versionKey: false,
     });
 
 const TicketModel = model("tickets", ticketSchema);

@@ -1,5 +1,6 @@
 import CartDao from "../daos/mongodb/cart.dao.js";
 import Services from "./service.manager.js";
+import CartModel from "../daos/mongodb/models/carts.model.js";
 
 
 const cartDao = new CartDao();
@@ -57,7 +58,7 @@ class CartServices extends Services {
                 await cart.save();
                 return cart;
             } else {
-                throw (error)
+                throw new Error(`Producto con ID ${prodId} no encontrado en el carrito.`);
             }
         } catch (error) {
             throw (error);
@@ -86,10 +87,15 @@ class CartServices extends Services {
         }
     };
 
-    async finalizePurchase(cartId, userId) {
-        const cart = await CartModel.findOne({ _id: cartId, user: userId }).populate('products.product');
+    async finalizePurchase(cartId) {
+        const cart = await CartModel.findOne({ _id: cartId }).populate('products.product');
         if (!cart) {
             throw new Error('Carrito no encontrado');
+        }
+        if (cart.products.length === 0) {
+            return {
+                message: 'El carrito está vacío'
+            };
         }
         let failedProducts = [];
         let totalAmount = 0;

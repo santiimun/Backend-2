@@ -1,19 +1,20 @@
 import { Router } from "express";
 import { cartController } from "../controllers/cart.controller.js";
 import { roleAuth } from "../middlewars/roleAuth.js";
+import passport from "passport";
 
 const router = Router();
 
-router.get("/", roleAuth("admin"), cartController.getAll);
+router.get("/",passport.authenticate('current', {session: false}), roleAuth("admin"), cartController.getAll);
 router.route("/:cid")
     .get(cartController.getOneById)
-    .put(roleAuth("admin"), cartController.updateCart)
+    .put(passport.authenticate('current', {session: false}), roleAuth("admin"), cartController.updateCart)
 router.route("/:cid/products/:pid")
-    .post(cartController.addOneProduct)
-    .put(roleAuth("admin"), cartController.updateProdQuantity)
-    .delete(cartController.removeProductCart)
-router.delete("/:cid/products",roleAuth("admin"), cartController.clearCart);
-router.post("/:cid/purchase",roleAuth("user", "admin"), cartController.finalizeTicket)
+    .post(passport.authenticate('current', {session: false}), roleAuth("user", "admin"), cartController.addOneProduct)
+    .put(passport.authenticate('current', {session: false}), roleAuth("admin"), cartController.updateProdQuantity)
+    .delete(passport.authenticate('current', {session: false}), roleAuth("user", "admin"), cartController.removeProductCart)
+router.delete("/:cid/products",passport.authenticate('current', {session: false}), roleAuth("admin"), cartController.clearCart);
+router.post("/:cid/purchase",passport.authenticate('current', {session: false}), roleAuth("user", "admin"), cartController.finalizeTicket)
 
 
 export default router;

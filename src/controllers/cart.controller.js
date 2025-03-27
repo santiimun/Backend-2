@@ -81,20 +81,22 @@ class CartController extends Controllers{
     finalizeTicket = async (req, res, next) => {
         try {
             const { cid } = req.params;
-            const userId = req.user.id;
-            
-            const { success, failedProducts, totalAmount } = await this.service.finalizePurchase(cid, userId);
+            const userEmail = req.user.email;            
+            if (!userEmail) {
+                return res.status(400).json({ message: "Email del usuario no encontrado" });
+            }
+            const { success, failedProducts, totalAmount } = await this.service.finalizePurchase(cid);
             if (!success) {
                 return res.status(400).json({ message: "Compra no completada", failedProducts });
             }
-            const ticket = await ticketServices.createTicket(userId, totalAmount);
+            const ticket = await ticketServices.createTicket(userEmail, totalAmount);
             await this.service.clearCart(cid);
             return res.status(200).json({
                 message: "Compra completada con éxito",
                 ticket
             });
         } catch (error) {
-            next (error)
+            next(error);
         }
     }
 }
